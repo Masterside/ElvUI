@@ -94,6 +94,7 @@ local function CreateDatatbarsConfig()
 	MC:AddConfigOptions(P.databars, config)
 
 	config.args.colors.name = L["Colors"]
+	config.args.damageBar.name = L["Damage Bar"]
 	config.args.experience.name = L["Experience"]
 	config.args.reputation.name = L["Reputation"]
 	config.args.honor.name = L["Honor"]

@@ -23,3 +23,5 @@ $RECYCLE.BIN/
 
 # Jetbrains local config
 .idea
+
+*.ps1

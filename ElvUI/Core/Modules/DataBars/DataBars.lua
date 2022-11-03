@@ -170,6 +170,7 @@ function DB:HandleVisibility()
 end
 
 function DB:ToggleAll()
+	DB:DamageBar_Toggle()
 	DB:ExperienceBar_Toggle()
 	DB:ReputationBar_Toggle()
 	DB:ThreatBar_Toggle()
@@ -183,6 +184,7 @@ function DB:ToggleAll()
 end
 
 function DB:CreateAll()
+	DB:DamageBar()
 	DB:ExperienceBar()
 	DB:ReputationBar()
 	DB:ThreatBar()

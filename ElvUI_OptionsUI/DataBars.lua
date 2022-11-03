@@ -65,6 +65,11 @@ end
 DataBars.args.colorGroup.args.factionColors.args["9"] = ACH:Color(L["Paragon"], nil, 9, true)
 DataBars.args.colorGroup.args.factionColors.args["10"] = ACH:Color(L["Renown"], nil, 10, true)
 
+DataBars.args.damageBar = ACH:Group(L["Damage Bar"], nil, 1, nil, function(info) return DB.db.damageBar[info[#info]] end, function(info, value) DB.db.damageBar[info[#info]] = value DB:DamageBar_Update() DB:UpdateAll() end)
+DataBars.args.damageBar.args = CopyTable(SharedOptions)
+DataBars.args.damageBar.args.enable.set = function(info, value) DB.db.damageBar[info[#info]] = value DB:DamageBar_Toggle() DB:UpdateAll() end
+DataBars.args.damageBar.args.textFormat.set = function(info, value) DB.db.damageBar[info[#info]] = value DB:DamageBar_Update() end
+
 DataBars.args.experience = ACH:Group(L["Experience"], nil, 1, nil, function(info) return DB.db.experience[info[#info]] end, function(info, value) DB.db.experience[info[#info]] = value DB:ExperienceBar_Update() DB:UpdateAll() end)
 DataBars.args.experience.args = CopyTable(SharedOptions)
 DataBars.args.experience.args.showLevel = ACH:Toggle(L["Level"], nil, 6)
