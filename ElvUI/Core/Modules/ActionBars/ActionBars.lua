@@ -2,7 +2,7 @@ local E, L, V, P, G = unpack(ElvUI)
 local AB = E:GetModule('ActionBars')
 
 local _G = _G
-local ipairs, pairs, strmatch, next, unpack = ipairs, pairs, strmatch, next, unpack
+local ipairs, pairs, strmatch, next, unpack, tonumber = ipairs, pairs, strmatch, next, unpack, tonumber
 local format, gsub, strsplit, strfind, strsub, strupper = format, gsub, strsplit, strfind, strsub, strupper
 
 local ClearOnBarHighlightMarks = ClearOnBarHighlightMarks
@@ -425,36 +425,40 @@ function AB:CreateVehicleLeave()
 	local db = E.db.actionbar.vehicleExitButton
 	if not db.enable then return end
 
+	local button = _G.MainMenuBarVehicleLeaveButton
 	local holder = CreateFrame('Frame', 'VehicleLeaveButtonHolder', E.UIParent)
-	holder:Point('BOTTOM', E.UIParent, 'BOTTOM', 0, 300)
-	holder:Size(_G.MainMenuBarVehicleLeaveButton:GetSize())
+	holder:Point('BOTTOM', E.UIParent, 0, 300)
+	holder:Size(button:GetSize())
 	E:CreateMover(holder, 'VehicleLeaveButton', L["VehicleLeaveButton"], nil, nil, nil, 'ALL,ACTIONBARS', nil, 'actionbar,extraButtons,vehicleExitButton')
 
-	local Button = _G.MainMenuBarVehicleLeaveButton
-	Button:ClearAllPoints()
-	Button:SetParent(_G.UIParent)
-	Button:Point('CENTER', holder, 'CENTER')
+	button:ClearAllPoints()
+	button:SetParent(_G.UIParent)
+	button:Point('CENTER', holder)
+
+	-- taints because of EditModeManager, in UpdateBottomActionBarPositions
+	button:SetScript('OnShow', nil)
+	button:SetScript('OnHide', nil)
 
 	if MasqueGroup and E.private.actionbar.masque.actionbars then
-		Button:StyleButton(true, true, true)
+		button:StyleButton(true, true, true)
 	else
-		Button:CreateBackdrop(nil, true)
-		Button:GetNormalTexture():SetTexCoord(0.140625 + .08, 0.859375 - .06, 0.140625 + .08, 0.859375 - .08)
-		Button:GetPushedTexture():SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
-		Button:StyleButton(nil, true, true)
+		button:CreateBackdrop(nil, true)
+		button:GetNormalTexture():SetTexCoord(0.140625 + .08, 0.859375 - .06, 0.140625 + .08, 0.859375 - .08)
+		button:GetPushedTexture():SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
+		button:StyleButton(nil, true, true)
 
-		hooksecurefunc(Button, 'SetHighlightTexture', function(btn, tex)
+		hooksecurefunc(button, 'SetHighlightTexture', function(btn, tex)
 			if tex ~= btn.hover then
-				Button:SetHighlightTexture(btn.hover)
+				button:SetHighlightTexture(btn.hover)
 			end
 		end)
 	end
 
-	hooksecurefunc(Button, 'SetPoint', function(_, _, parent)
+	hooksecurefunc(button, 'SetPoint', function(_, _, parent)
 		if parent ~= holder then
-			Button:ClearAllPoints()
-			Button:SetParent(_G.UIParent)
-			Button:Point('CENTER', holder, 'CENTER')
+			button:ClearAllPoints()
+			button:SetParent(_G.UIParent)
+			button:Point('CENTER', holder)
 		end
 	end)
 
@@ -996,36 +1000,26 @@ end
 
 do
 	local untaint = {
-		MainMenuBar = true,
-		MicroButtonAndBagsBar = true,
+		MultiBar5 = true,
+		MultiBar6 = true,
+		MultiBar7 = true,
+		MultiBarLeft = true,
+		MultiBarRight = true,
 		MultiBarBottomLeft = true,
 		MultiBarBottomRight = true,
-		MultiBarLeft = true,
-		MultiBarRight = true
-	}
-
-	if E.Retail then
-		untaint.MultiBar5 = true
-		untaint.MultiBar6 = true
-		untaint.MultiBar7 = true
-	end
-
-	local removeEvents = {
+		MicroButtonAndBagsBar = true,
 		OverrideActionBar = true,
-		MultiCastActionBarFrame = not E.Wrath or nil, -- skip
+		MainMenuBar = true,
 		[E.Retail and 'StanceBar' or 'StanceBarFrame'] = true,
 		[E.Retail and 'PetActionBar' or 'PetActionBarFrame'] = true,
 		[E.Retail and 'PossessActionBar' or 'PossessBarFrame'] = true
 	}
 
-	-- import to the main table
-	E:CopyTable(untaint, removeEvents)
+	if E.Wrath then -- TotemBar: this still might taint
+		untaint.MultiCastActionBarFrame = true
+	end
 
 	function AB:DisableBlizzard()
-		if E.Wrath then -- TotemBar: this still might taint
-			_G.UIPARENT_MANAGED_FRAME_POSITIONS.MultiCastActionBarFrame = nil
-		end
-
 		for name in next, untaint do
 			if not E.Retail then
 				_G.UIPARENT_MANAGED_FRAME_POSITIONS[name] = nil
@@ -1036,10 +1030,7 @@ do
 			local frame = _G[name]
 			if frame then
 				frame:SetParent(E.HiddenFrame)
-
-				if removeEvents[name] then
-					frame:UnregisterAllEvents()
-				end
+				frame:UnregisterAllEvents()
 
 				if not E.Retail then
 					AB:SetNoopsi(frame)
@@ -1058,13 +1049,13 @@ do
 
 		-- shut down some events for things we dont use
 		_G.ActionBarButtonEventsFrame:UnregisterAllEvents()
-		_G.ActionBarButtonEventsFrame:RegisterEvent('ACTIONBAR_SLOT_CHANGED') -- these are needed to let the ExtraActionButton show
-		_G.ActionBarButtonEventsFrame:RegisterEvent('ACTIONBAR_UPDATE_COOLDOWN') -- needed for ExtraActionBar cooldown
 		_G.ActionBarActionEventsFrame:UnregisterAllEvents()
 		_G.ActionBarController:UnregisterAllEvents()
 
 		if E.Retail then
 			_G.StatusTrackingBarManager:UnregisterAllEvents()
+			_G.ActionBarButtonEventsFrame:RegisterEvent('ACTIONBAR_SLOT_CHANGED') -- these are needed to let the ExtraActionButton show
+			_G.ActionBarButtonEventsFrame:RegisterEvent('ACTIONBAR_UPDATE_COOLDOWN') -- needed for ExtraActionBar cooldown
 			_G.ActionBarController:RegisterEvent('SETTINGS_LOADED') -- this is needed for page controller to spawn properly
 			_G.ActionBarController:RegisterEvent('UPDATE_EXTRA_ACTIONBAR') -- this is needed to let the ExtraActionBar show
 
