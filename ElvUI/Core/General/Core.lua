@@ -60,7 +60,7 @@ E.toc = tonumber(GetAddOnMetadata('ElvUI', 'X-Interface'))
 E.myfaction, E.myLocalizedFaction = UnitFactionGroup('player')
 E.mylevel = UnitLevel('player')
 E.myLocalizedClass, E.myclass, E.myClassID = UnitClass('player')
-E.myLocalizedRace, E.myrace = UnitRace('player')
+E.myLocalizedRace, E.myrace, E.myRaceID = UnitRace('player')
 E.myname = UnitName('player')
 E.myrealm = GetRealmName()
 E.mynameRealm = format('%s - %s', E.myname, E.myrealm) -- contains spaces/dashes in realm (for profile keys)
@@ -514,7 +514,15 @@ end
 
 function E:IsIncompatible(module, addons)
 	for _, addon in ipairs(addons) do
-		if E:IsAddOnEnabled(addon) then
+		local incompatible
+		if addon == 'Leatrix_Plus' then
+			local db = _G.LeaPlusDB
+			incompatible = db and db.MinimapMod == 'On'
+		else
+			incompatible = E:IsAddOnEnabled(addon)
+		end
+
+		if incompatible then
 			E:IncompatibleAddOn(addon, module, addons.info)
 			return true
 		end
@@ -557,14 +565,12 @@ do
 		},
 		Minimap = {
 			info = {
-				enabled = function()
-					local db = E.private.general.minimap.enable and _G.LeaPlusDB
-					return db and db.MinimapMod == 'On'
-				end,
+				enabled = function() return E.private.general.minimap.enable end,
 				accept = function() E.private.general.minimap.enable = false; ReloadUI() end,
 				name = 'ElvUI Minimap',
 			},
-			'Leatrix_Plus'
+			'Leatrix_Plus', -- has custom check in IsIncompatible
+			'SexyMap'
 		},
 	}
 
